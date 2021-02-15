@@ -39,6 +39,9 @@
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
+/* Support PNG images */
+#undef HAVE_LIBPNG
+
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
@@ -83,6 +86,9 @@
 
 /* Define to 1 if you have the <sched.h> header file. */
 #undef HAVE_SCHED_H
+
+/* Define to 1 if you have the <setjmp.h> header file. */
+#undef HAVE_SETJMP_H
 
 /* Define to 1 if stdbool.h conforms to C99. */
 #undef HAVE_STDBOOL_H

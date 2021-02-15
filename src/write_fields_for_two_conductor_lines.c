@@ -46,7 +46,6 @@ Dr. David Kirkby, e-mail drkirkby at gmail.com
 
 extern double **Vij;
 extern double **Er;
-extern unsigned char *bmp_buff;
 extern int width, height, errno;
 #ifdef WRITE_ODDITY_DATA
 extern unsigned char **oddity;
@@ -110,12 +109,12 @@ void write_fields_for_two_conductor_lines(char * filename, struct transmission_l
 
   if(data.write_binary_field_imagesQ==TRUE)
   {
-    Ex_bin_fp=get_file_pointer_with_right_filename(filename,".Ex.bin");
-    Ey_bin_fp=get_file_pointer_with_right_filename(filename,".Ey.bin");
-    E_bin_fp=get_file_pointer_with_right_filename(filename,".E.bin");
-    V_bin_fp=get_file_pointer_with_right_filename(filename,".V.bin");
-    U_bin_fp=get_file_pointer_with_right_filename(filename,".U.bin");
-    permittivity_bin_fp=get_file_pointer_with_right_filename(filename,".Er.bin");
+    Ex_bin_fp=get_file_pointer_with_right_filename(filename,".Ex", 0);
+    Ey_bin_fp=get_file_pointer_with_right_filename(filename,".Ey", 0);
+    E_bin_fp=get_file_pointer_with_right_filename(filename,".E", 0);
+    V_bin_fp=get_file_pointer_with_right_filename(filename,".V", 0);
+    U_bin_fp=get_file_pointer_with_right_filename(filename,".U", 0);
+    permittivity_bin_fp=get_file_pointer_with_right_filename(filename,".Er", 0);
     for(h=height-1;h>=0;h--)
     {
       for(w=0;w<width;++w)
@@ -161,33 +160,15 @@ void write_fields_for_two_conductor_lines(char * filename, struct transmission_l
     image_data_oddity=ustring(0L,(long) size);
 #endif
 
-    Ex_bmp_fp=get_file_pointer_with_right_filename(filename,".Ex.bmp");
-    Ey_bmp_fp=get_file_pointer_with_right_filename(filename,".Ey.bmp");
-    E_bmp_fp=get_file_pointer_with_right_filename(filename,".E.bmp");
-    V_bmp_fp=get_file_pointer_with_right_filename(filename,".V.bmp");
-    U_bmp_fp=get_file_pointer_with_right_filename(filename,".U.bmp");
-    permittivity_bmp_fp=get_file_pointer_with_right_filename(filename,".Er.bmp");
+    Ex_bmp_fp=get_file_pointer_with_right_filename(filename,".Ex", 1);
+    Ey_bmp_fp=get_file_pointer_with_right_filename(filename,".Ey", 1);
+    E_bmp_fp=get_file_pointer_with_right_filename(filename,".E", 1);
+    V_bmp_fp=get_file_pointer_with_right_filename(filename,".V", 1);
+    U_bmp_fp=get_file_pointer_with_right_filename(filename,".U", 1);
+    permittivity_bmp_fp=get_file_pointer_with_right_filename(filename,".Er", 1);
 #ifdef WRITE_ODDITY_DATA
-    oddity_bmp_fp=get_file_pointer_with_right_filename(filename,".oddity.bmp");
+    oddity_bmp_fp=get_file_pointer_with_right_filename(filename,".oddity", 1);
 #endif
-
-    if( fwrite(bmp_buff,0x36,1,Ex_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("failed to write file with the pointer Ex_bmp_fp in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,Ey_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("failed to write file with the pointer Ey_bmp_fp in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,E_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("failed to write file with the pointer E_bmp_fp in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,V_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("failed to write file with the pointer V_bmp_fp in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,U_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("failed to write file with the pointer U_bmp_fp in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,permittivity_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("failed to write file with the pointer permittivity_bmp_fp in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
-
-#ifdef WRITE_ODDITY_DATA
-    if( fwrite(bmp_buff,0x36,1,oddity_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("failed to write file with the pointer oddity_bmp_fp in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
-#endif 
 
     offset=-3;
     for(h=height-1;h>=0;h--)
@@ -214,41 +195,38 @@ void write_fields_for_two_conductor_lines(char * filename, struct transmission_l
 
       }
     }
-
-    /* if( fwrite((void *) &(image_data_Ex[0]),size, 1, Ex_bmp_fp) != 1) */
-    if( fwrite((void *) image_data_Ex,size, 1, Ex_bmp_fp) != 1)
+    if (write_data_to_image(Ex_bmp_fp, width, height, size, image_data_Ex))
       exit_with_msg_and_exit_code("Error#7: Failed to write bitmap file in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
     if( fclose(Ex_bmp_fp) != 0)
       exit_with_msg_and_exit_code("Error#8: Unable to close file in write_fields_for_two_conductor_lines.c",CANT_CLOSE_FILE);
 
-    /* if( fwrite((void *) &(image_data_Ey[0]),size, 1, Ey_bmp_fp) != 1) */
-    if( fwrite((void *) image_data_Ey,size, 1, Ey_bmp_fp) != 1)
+    if (write_data_to_image(Ey_bmp_fp, width, height, size, image_data_Ey))
       exit_with_msg_and_exit_code("Error#9: Failed to write bitmap file in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
     if( fclose(Ey_bmp_fp) != 0)
       exit_with_msg_and_exit_code("Error#10: Unable to close file in write_fields_for_two_conductor_lines.c",CANT_CLOSE_FILE);
 
-    if( fwrite((void *) &(image_data_E[0]),size, 1, E_bmp_fp) != 1)
+    if (write_data_to_image(E_bmp_fp, width, height, size, image_data_E))
       exit_with_msg_and_exit_code("Error#11: Failed to write bitmap file in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
     if( fclose(E_bmp_fp) != 0)
       exit_with_msg_and_exit_code("Error#12: Unable to close file in write_fields_for_two_conductor_lines.c",CANT_CLOSE_FILE);
 
-    if( fwrite((void *) &(image_data_U[0]),size, 1, U_bmp_fp) != 1)
+    if (write_data_to_image(U_bmp_fp, width, height, size, image_data_U))
       exit_with_msg_and_exit_code("Error#13: Failed to write bitmap file in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
     if( fclose(U_bmp_fp) != 0)
       exit_with_msg_and_exit_code("Error#14: Unable to close file in write_fields_for_two_conductor_lines.c",CANT_CLOSE_FILE);
 
-    if( fwrite((void *) &(image_data_V[0]),size, 1, V_bmp_fp) != 1)
+    if (write_data_to_image(V_bmp_fp, width, height, size, image_data_V))
       exit_with_msg_and_exit_code("Error#15: Failed to write bitmap file in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
     if( fclose(V_bmp_fp) != 0)
       exit_with_msg_and_exit_code("Error#16: Unable to close file in write_fields_for_two_conductor_lines.c",CANT_CLOSE_FILE);
 
-    if( fwrite((void *) &(image_data_Er[0]),size, 1, permittivity_bmp_fp) != 1)
+    if (write_data_to_image(permittivity_bmp_fp, width, height, size, image_data_Er))
       exit_with_msg_and_exit_code("Error#17: Failed to write bitmap file in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
     if( fclose(permittivity_bmp_fp) != 0)
       exit_with_msg_and_exit_code("Error#18: Unable to close file in write_fields_for_two_conductor_lines.c",CANT_CLOSE_FILE);
 
 #ifdef WRITE_ODDITY_DATA
-    if( fwrite((void *) &(image_data_oddity[0]),size, 1, oddity_bmp_fp) != 1)
+    if (write_data_to_image(oddity_bmp_fp, width, height, size, image_data_oddity))
       exit_with_msg_and_exit_code("Error#19: Failed to write bitmap file in write_fields_for_two_conductor_lines.c",WRITE_FAILURE);
     if( fclose(oddity_bmp_fp) != 0)
       exit_with_msg_and_exit_code("Error#20: Unable to close file in write_fields_for_two_conductor_lines.c",CANT_CLOSE_FILE);

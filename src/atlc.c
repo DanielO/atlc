@@ -83,11 +83,9 @@ char *inputfile_name;
 
 int main(int argc, char **argv) /* Read parameters from command line */
 {
-  FILE *where_to_print_fp=stdout, *image_data_fp;
+  FILE *where_to_print_fp=stdout;
   char *outputfile_name, *appendfile_name, *output_prefix;
-  long i;
   size_t size;
-  int offset;
   int q;
   char *end;
   struct transmission_line_properties data;
@@ -197,62 +195,9 @@ hence built without the mpi\nlibrary.\n",1);
     (void) strcpy(outputfile_name,output_prefix);
     free_string(output_prefix,0,1024);
 
-#if 0
-    read_bitmap_file_headers(inputfile_name, &offset, &size, &width, &height);
-
-    /* Allocate all ram now, so atlc is sure to have it. There is no point
-    in getting some now, starting work then finding atlc can't get the 
-    rest of what is needed. */
-    image_data=ustring(0L,(long)size);
-
-    /* In theory, it would be sensible to get atlc to be able to read
-    from stdin. This is a test, that checks if the filename is '-', and
-    if so assumes its reading from stdin. So far, the program is
-    unable to read from stdin, so this code is not really doing
-    anything useful, but might be expanded at a later date. */
-#ifdef DEBUG
-  if (errno != 0)
-    fprintf(stderr,"errno=%d in atlc.c #3\n",errno);
-#endif
-    if( strcmp(argv[my_optind],"-") != 0)
-    {
-      if( (image_data_fp=fopen(inputfile_name, "rb")) == NULL)
-      {
-        fprintf(stderr,"Error #3. Can't open %s!!!!!\n", argv[my_optind]);
-        exit_with_msg_and_exit_code("",3);
-      }
-      if(fseek(image_data_fp, offset, SEEK_SET)!=0)
-      {   
-        fprintf(stderr,"Error #4. Sorry, unable to seek to the correct part \
-	(offset=%d) of the bmp image\n", offset);
-	exit_with_msg_and_exit_code("",4);
-      }
-    } /* end of if( strcmp(argv[my_optind],"-") != 0) */
-    else
-      image_data_fp=stdin;
-    /* For some unknown reason Microsoft's Visual C++ was unhappy to read
-    the bitmap image using an fread() call. Instead, the following two 
-    stupid lines fixed that issue. This will only get compiled under 
-    Windoze, the more sensible fread call being used on other operating 
-    systems. */
-#ifdef WINDOWS
-    for(i=0; (i < (long)size ) && (feof(image_data_fp)==0); i++)
-      image_data[i]=(unsigned char)fgetc(image_data_fp);
-#else
-	i = fread(image_data,  size, 1, image_data_fp);
-#endif
-    if((ferror(image_data_fp) || (i != 1 )))
-    {
-      fprintf(stderr,"Error #5. Unable to read all of the image data properly %ld %d\n", i, ferror(image_data_fp));
+    if (load_image_from_file(inputfile_name, &size, &width, &height, &image_data))
       exit_with_msg_and_exit_code("",5);
-    }
-#else
-    if (load_image_from_png(inputfile_name, &size, &width, &height, &image_data)) {
-      fprintf(stderr, "Unable to load image\n");
-      exit_with_msg_and_exit_code("",5);
-    }
-#endif
-    
+
     oddity=ucmatrix(0,width-1,0,height-1);
     cell_type=ucmatrix(0,width-1,0,height-1);
     Vij=dmatrix(0,width-1,0,height-1);
@@ -298,6 +243,6 @@ hence built without the mpi\nlibrary.\n",1);
   free_ucmatrix(cell_type,0,width-1,0,height-1);
   free_dmatrix(Vij, 0,width-1,0,height-1);
   free_dmatrix(Er,0,width-1,0,height-1);
-  fclose(image_data_fp);
-  return(OKAY); 
+
+  return(OKAY);
 }

@@ -95,7 +95,6 @@ example.Er.bin       binary file, showing dielectric constant as on grayscale
 
 extern double **Vij;
 extern double **Er;
-extern unsigned char *bmp_buff;
 extern int width, height;
 
 void write_fields_for_directional_couplers(char * filename, struct transmission_line_properties data, size_t size, int odd_or_even)
@@ -121,12 +120,12 @@ void write_fields_for_directional_couplers(char * filename, struct transmission_
 
   if(data.write_binary_field_imagesQ==TRUE && odd_or_even == ODD)
   {
-    Ex_odd_bin_fp=get_file_pointer_with_right_filename(filename,".Ex.odd.bin");
-    Ey_odd_bin_fp=get_file_pointer_with_right_filename(filename,".Ey.odd.bin");
-    E_odd_bin_fp=get_file_pointer_with_right_filename(filename,".E.odd.bin");
-    V_odd_bin_fp=get_file_pointer_with_right_filename(filename,".V.odd.bin");
-    U_odd_bin_fp=get_file_pointer_with_right_filename(filename,".U.odd.bin");
-    permittivity_bin_fp=get_file_pointer_with_right_filename(filename,".Er.bin");
+    Ex_odd_bin_fp=get_file_pointer_with_right_filename(filename,".Ex.odd", 0);
+    Ey_odd_bin_fp=get_file_pointer_with_right_filename(filename,".Ey.odd", 0);
+    E_odd_bin_fp=get_file_pointer_with_right_filename(filename,".E.odd", 0);
+    V_odd_bin_fp=get_file_pointer_with_right_filename(filename,".V.odd", 0);
+    U_odd_bin_fp=get_file_pointer_with_right_filename(filename,".U.odd", 0);
+    permittivity_bin_fp=get_file_pointer_with_right_filename(filename,".Er", 0);
 
     for(h=height-1;h>=0;h--)
     {
@@ -184,30 +183,18 @@ void write_fields_for_directional_couplers(char * filename, struct transmission_
     }
     /* Find maximum of the parameters */
     find_maximum_values(&(maximum_values),ZERO_ELEMENTS_FIRST); /* sets stucture maximum_values */
-    Ex_odd_bmp_fp=get_file_pointer_with_right_filename(filename,".Ex.odd.bmp");
-    Ey_odd_bmp_fp=get_file_pointer_with_right_filename(filename,".Ey.odd.bmp");
-    E_odd_bmp_fp=get_file_pointer_with_right_filename(filename,".E.odd.bmp");
-    V_odd_bmp_fp=get_file_pointer_with_right_filename(filename,".V.odd.bmp");
-    U_odd_bmp_fp=get_file_pointer_with_right_filename(filename,".U.odd.bmp");
-    permittivity_bmp_fp=get_file_pointer_with_right_filename(filename,".Er.bmp");
+    Ex_odd_bmp_fp=get_file_pointer_with_right_filename(filename,".Ex.odd", 1);
+    Ey_odd_bmp_fp=get_file_pointer_with_right_filename(filename,".Ey.odd", 1);
+    E_odd_bmp_fp=get_file_pointer_with_right_filename(filename,".E.odd", 1);
+    V_odd_bmp_fp=get_file_pointer_with_right_filename(filename,".V.odd", 1);
+    U_odd_bmp_fp=get_file_pointer_with_right_filename(filename,".U.odd", 1);
+    permittivity_bmp_fp=get_file_pointer_with_right_filename(filename,".Er", 1);
 
     /* Permittivity images are written along with the odd images. It
     makes no difference whey they are written, since they don't change */
 
-    permittivity_bmp_fp=get_file_pointer_with_right_filename(filename,".Er.bmp");
+    permittivity_bmp_fp=get_file_pointer_with_right_filename(filename,".Er", 1);
 
-    if( fwrite(bmp_buff,0x36,1,Ex_odd_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("Error#6: Failed to write binary file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,Ey_odd_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("Error#6: Failed to write binary file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,E_odd_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("Error#6: Failed to write binary file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,U_odd_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("Error#6: Failed to write binary file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,V_odd_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("Error#6: Failed to write binary file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,permittivity_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("Error#6: Failed to write binary file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
     offset=-3;
     for(h=height-1;h>=0;h--)
     {
@@ -228,18 +215,19 @@ void write_fields_for_directional_couplers(char * filename, struct transmission_
         calculate_colour_data(Vij[w][h], maximum_values.V_max, w, h, offset,image_data_V, COLOUR,&r,&g,&b, IMAGE_FIDDLE_FACTOR);
         calculate_colour_data(Er[w][h], MAX_ER, w, h, offset,image_data_Er, MIXED,&r,&g,&b, IMAGE_FIDDLE_FACTOR);
       }
-    } 
-    if( fwrite((void *) image_data_Ex,size, 1, Ex_odd_bmp_fp) != 1)
+    }
+
+    if (write_data_to_image(Ex_odd_bmp_fp, width, height, size, image_data_Ex))
       exit_with_msg_and_exit_code("Error#25: Failed to write bitmap file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite((void *) &(image_data_Ey[0]),size, 1, Ey_odd_bmp_fp) != 1)
+    if (write_data_to_image(Ey_odd_bmp_fp, width, height, size, image_data_Ey))
       exit_with_msg_and_exit_code("Error#26: Failed to write bitmap file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite((void *) &(image_data_E[0]),size, 1, E_odd_bmp_fp) != 1)
+    if (write_data_to_image(E_odd_bmp_fp, width, height, size, image_data_E))
       exit_with_msg_and_exit_code("Error#27: Failed to write bitmap file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite((void *) &(image_data_V[0]),size, 1, V_odd_bmp_fp) != 1)
+    if (write_data_to_image(V_odd_bmp_fp, width, height, size, image_data_V))
       exit_with_msg_and_exit_code("Error#28: Failed to write bitmap file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite((void *) &(image_data_U[0]),size, 1, U_odd_bmp_fp) != 1)
+    if (write_data_to_image(U_odd_bmp_fp, width, height, size, image_data_U))
       exit_with_msg_and_exit_code("Error#29: Failed to write bitmap file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite((void *) &(image_data_Er[0]),size, 1, permittivity_bmp_fp) != 1)
+    if (write_data_to_image(permittivity_bmp_fp, width, height, size, image_data_Er))
       exit_with_msg_and_exit_code("Error#29: Failed to write bitmap file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
 
     if( fclose(Ex_odd_bmp_fp) != 0)
@@ -264,12 +252,12 @@ void write_fields_for_directional_couplers(char * filename, struct transmission_
 
   if(data.write_binary_field_imagesQ==TRUE && odd_or_even == EVEN)
   {
-    Ex_even_bin_fp=get_file_pointer_with_right_filename(filename,".Ex.even.bin");
-    Ey_even_bin_fp=get_file_pointer_with_right_filename(filename,".Ey.even.bin");
-    E_even_bin_fp=get_file_pointer_with_right_filename(filename,".E.even.bin");
-    V_even_bin_fp=get_file_pointer_with_right_filename(filename,".V.even.bin");
-    U_even_bin_fp=get_file_pointer_with_right_filename(filename,".U.even.bin");
-    permittivity_bin_fp=get_file_pointer_with_right_filename(filename,".Er.bin");
+    Ex_even_bin_fp=get_file_pointer_with_right_filename(filename,".Ex.even", 0);
+    Ey_even_bin_fp=get_file_pointer_with_right_filename(filename,".Ey.even", 0);
+    E_even_bin_fp=get_file_pointer_with_right_filename(filename,".E.even", 0);
+    V_even_bin_fp=get_file_pointer_with_right_filename(filename,".V.even", 0);
+    U_even_bin_fp=get_file_pointer_with_right_filename(filename,".U.even", 0);
+    permittivity_bin_fp=get_file_pointer_with_right_filename(filename,".Er", 0);
 
     for(h=height-1;h>=0;h--)
     {
@@ -338,30 +326,17 @@ void write_fields_for_directional_couplers(char * filename, struct transmission_
     /* Find maximum of the parameters */
     find_maximum_values(&(maximum_values),FALSE); /* sets stucture maximum_values */
 
-    Ex_even_bmp_fp=get_file_pointer_with_right_filename(filename,".Ex.even.bmp");
-    Ey_even_bmp_fp=get_file_pointer_with_right_filename(filename,".Ey.even.bmp");
-    E_even_bmp_fp=get_file_pointer_with_right_filename(filename,".E.even.bmp");
-    V_even_bmp_fp=get_file_pointer_with_right_filename(filename,".V.even.bmp");
-    U_even_bmp_fp=get_file_pointer_with_right_filename(filename,".U.even.bmp");
-    permittivity_bmp_fp=get_file_pointer_with_right_filename(filename,".Er.bmp");
+    Ex_even_bmp_fp=get_file_pointer_with_right_filename(filename,".Ex.even", 1);
+    Ey_even_bmp_fp=get_file_pointer_with_right_filename(filename,".Ey.even", 1);
+    E_even_bmp_fp=get_file_pointer_with_right_filename(filename,".E.even", 1);
+    V_even_bmp_fp=get_file_pointer_with_right_filename(filename,".V.even", 1);
+    U_even_bmp_fp=get_file_pointer_with_right_filename(filename,".U.even", 1);
+    permittivity_bmp_fp=get_file_pointer_with_right_filename(filename,".Er", 1);
 
     /* Permittivity images are written along with the even images. It
     makes no difference whey they are written, since they don't change */
 
-    permittivity_bmp_fp=get_file_pointer_with_right_filename(filename,".Er.bmp");
-
-    if( fwrite(bmp_buff,0x36,1,Ex_even_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("Error#1: Failed to write binary file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,Ey_even_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("Error#1: Failed to write binary file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,E_even_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("Error#1: Failed to write binary file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,U_even_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("Error#1: Failed to write binary file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,V_even_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("Error#1: Failed to write binary file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite(bmp_buff,0x36,1,permittivity_bmp_fp) != 1)
-      exit_with_msg_and_exit_code("Error#1: Failed to write binary file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
+    permittivity_bmp_fp=get_file_pointer_with_right_filename(filename,".Er", 1);
     offset=-3;
     for(h=height-1;h>=0;h--)
     {
@@ -382,18 +357,18 @@ void write_fields_for_directional_couplers(char * filename, struct transmission_
         calculate_colour_data(Vij[w][h], maximum_values.V_max, w, h, offset,image_data_V, COLOUR,&r,&g,&b, IMAGE_FIDDLE_FACTOR);
         calculate_colour_data(Er[w][h], MAX_ER, w, h, offset,image_data_Er, MIXED,&r,&g,&b, IMAGE_FIDDLE_FACTOR);
       }
-    } 
-    if( fwrite((void *) &(image_data_Ex[0]),size, 1, Ex_even_bmp_fp) != 1)
+    }
+    if (write_data_to_image(Ex_even_bmp_fp, width, height, size, image_data_Ex))
       exit_with_msg_and_exit_code("Error#25: Failed to write bitmap file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite((void *) &(image_data_Ey[0]),size, 1, Ey_even_bmp_fp) != 1)
+    if (write_data_to_image(Ey_even_bmp_fp, width, height, size, image_data_Ey))
       exit_with_msg_and_exit_code("Error#26: Failed to write bitmap file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite((void *) &(image_data_E[0]),size, 1, E_even_bmp_fp) != 1)
+    if (write_data_to_image(E_even_bmp_fp, width, height, size, image_data_E))
       exit_with_msg_and_exit_code("Error#27: Failed to write bitmap file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite((void *) &(image_data_V[0]),size, 1, V_even_bmp_fp) != 1)
+    if (write_data_to_image(V_even_bmp_fp, width, height, size, image_data_V))
       exit_with_msg_and_exit_code("Error#28: Failed to write bitmap file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite((void *) &(image_data_U[0]),size, 1, U_even_bmp_fp) != 1)
+    if (write_data_to_image(U_even_bmp_fp, width, height, size, image_data_U))
       exit_with_msg_and_exit_code("Error#29: Failed to write bitmap file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
-    if( fwrite((void *) &(image_data_Er[0]),size, 1, permittivity_bmp_fp) != 1)
+    if (write_data_to_image(permittivity_bmp_fp, width, height, size, image_data_Er))
       exit_with_msg_and_exit_code("Error#29: Failed to write bitmap file in write_fields_for_directional_couplers.c",WRITE_FAILURE);
 
     if( fclose(Ex_even_bmp_fp) != 0)

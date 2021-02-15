@@ -38,13 +38,14 @@ AC_CHECK_LIB(m,log)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdio.h math.h malloc.h stdlib.h string.h time.h limits.h ])
+AC_CHECK_HEADERS([stdio.h math.h malloc.h stdint.h stdlib.h string.h time.h limits.h ])
 AC_CHECK_HEADERS([strings.h sys/types.h machine/hal_sysinfo.h sys/sysinfo.h ])
 AC_CHECK_HEADERS([sys/processor.h sched.h sys/param.h sys/pstat.h sys/unistd.h ])
 AC_CHECK_HEADERS([ sys/utsname.h sys/systeminfo.h unistd.h aixfont.h ])
 AC_CHECK_HEADERS([ linux/ip.h errno.h sys/vid.h invent.h sys/sysctl.h ])
 # sys/syslimits.h and sys/param.h sometimes needed on OpenBSD 3.2 SPARC
 AC_CHECK_HEADERS([ sys/syslimits.h ])
+AC_CHECK_HEADERS([setjmp.h])
 
 # Checks for typedefs
 AC_HEADER_STDBOOL
@@ -142,6 +143,21 @@ AC_CHECK_DECL(_SC_NPROC_ONLN,,)
   #  AC_MSG_WARN([The program 'mpirun' needed to run atlc, can't be found])
   #fi
 #fi
+
+# Look for libpng
+
+# This is because the first PKG_CHECK_MODULES call is inside a conditional.
+PKG_PROG_PKG_CONFIG
+AC_ARG_WITH([libpng],
+  [AS_HELP_STRING([--with-libpng],
+    [support handling png files @<:@default=check@:>@])],
+  [],
+  [with_libpng=check])
+AS_CASE(["$with_libpng"],
+  [yes], [PKG_CHECK_MODULES([libpng], [libpng], [HAVE_LIBPNG=1 AC_DEFINE([HAVE_LIBPNG], [1], [Support PNG images])])],
+  [no], [HAVE_LIBPNG=0],
+  [PKG_CHECK_MODULES([libpng], [libpng], [HAVE_LIBPNG=1 AC_DEFINE([HAVE_LIBPNG], [1], [Support PNG images])], [HAVE_LIBPNG=0])])
+AM_CONDITIONAL([USE_LIBPNG], [test "$with_libpng" != no -a $HAVE_LIBPNG -eq 1])
 
 dnl Only use -Wall if we have gcc
 if test "x$GCC" = "xyes"; then

@@ -172,6 +172,10 @@ Laboratory's list of physical constants found on the web. */
 #define CONTROL_VALUE_EXIT             3
 #endif /* ENABLE_MPI */
 
+enum image_type_t {
+    IMG_BMP = 0,
+    IMG_PNG
+} image_type;
 
 extern char *my_optarg;
 /* I needed to invent add my_ in front of the usual name for optind,
@@ -294,8 +298,11 @@ struct Bitmap_Head_Struct
 
 int main(int argc, char **argv);
 void byteswap_doubles(double *a);
-void read_bitmap_file_headers(char* filename, int* offset, size_t* size, int* width, int* height);
+void read_bitmap_file_headers(FILE *fp, int* offset, size_t* size, int* width, int* height);
+int load_image_from_file(char *filename, size_t* size, int* width, int* height, unsigned char **image_data);
 int load_image_from_png(char *filename, size_t* size, int* width, int* height, unsigned char **image_data);
+int write_data_to_image(FILE *fp, int width, int height, size_t size, unsigned char *image_data);
+int write_data_to_png(FILE *fp, int width, int height, unsigned char *image_data);
 void help(char *filename);
 double **dmatrix(long nrl, long nrh, long ncl, long nch);
 void free_dmatrix(double **m, long nrl, long nrh, long ncl, long nch);
@@ -350,7 +357,7 @@ int print_data(FILE *fp, char *filename, double Er, double C, double L, double Z
 Zodd, double Zeven, int whichZ, double v, double vf);
 void set_oddity_value(void);
 double find_energy_per_metre(int i, int j);
-FILE *get_file_pointer_with_right_filename(char *filename, const char *ext);
+FILE *get_file_pointer_with_right_filename(char *filename, const char *ext, int isimage);
 void find_maximum_values(struct max_values *maximum_values, int zero_elementsQ);
 void calculate_colour_data(double x, double xmax, int w, int h, int offset, unsigned char *image_dat, int image_type,
 unsigned char *red, unsigned char *green, unsigned char *blue, double image_fiddle_factor);

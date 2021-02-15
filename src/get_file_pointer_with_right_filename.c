@@ -42,7 +42,7 @@ and will produce files such as coax.V.bmp, coax.E.bmp, coax.E.bin etc */
 #include "definitions.h"
 #include "exit_codes.h"
 
-FILE *get_file_pointer_with_right_filename(char *filename, const char *extension)
+FILE *get_file_pointer_with_right_filename(char *filename, const char *extension, int isimage)
 {
   char *basename, *temp;
   FILE *fp;
@@ -54,6 +54,13 @@ FILE *get_file_pointer_with_right_filename(char *filename, const char *extension
   basename=strncpy(basename,filename,strlen(filename)-4);
   (void) strcpy(temp,basename);
   (void) strcat(temp,extension);
+  if (isimage) {
+    if (image_type == IMG_BMP)
+      (void) strcat(temp, ".bmp");
+    else
+      (void) strcat(temp, ".png");
+  } else
+      (void) strcat(temp, ".bin");
   if((fp=fopen(temp,"w+b"))==NULL)
   {
     fprintf(stderr,"Sorry, cant open %s for writing\n", temp);

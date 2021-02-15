@@ -36,9 +36,6 @@ Dr. David Kirkby, e-mail drkirkby at gmail.com
 #include <stdlib.h>
 #endif
 
-#include <stdint.h>
-#include <png.h>
-
 #include "definitions.h"
 #include "exit_codes.h"
 
@@ -51,10 +48,8 @@ calculating all the data in the header correctly */
 
 #define BITMAP_HEADER_SIZE 0x36 /* 54 */
 
-void read_bitmap_file_headers(char *filename, int *offset, size_t *size, int *width, int *height)
+void read_bitmap_file_headers(FILE *fp, int *offset, size_t *size, int *width, int *height)
 {
-   FILE *fp;
-
    struct Bitmap_File_Head_Struct Bitmap_File_Head;
    struct Bitmap_Head_Struct Bitmap_Head;
    int ColormapSize, Maps;
@@ -66,18 +61,6 @@ void read_bitmap_file_headers(char *filename, int *offset, size_t *size, int *wi
 		       pointer */
 
    bmp_buff=ustring(0,BITMAP_HEADER_SIZE);
-   if(strcmp(filename,"-")==0)
-   {
-      fp=stdin;   
-   }
-   else  
-      fp=fopen(filename,"rb");
-
-   if(fp==NULL)
-   {
-      fprintf(stderr,"cannot open %s\n", filename);
-      exit_with_msg_and_exit_code("",CANT_OPEN_FILE_FOR_READING);
-   }
 
    /* deternine the length of the file, as its not always 
    written into the bitmap. I thought it needed to be, but
@@ -99,7 +82,7 @@ void read_bitmap_file_headers(char *filename, int *offset, size_t *size, int *wi
    /* Read the .bmp file header into a bmp_buff */
    if (!(fread(bmp_buff, 1,BITMAP_HEADER_SIZE,fp))||(strncmp((char *) bmp_buff,"BM",2)))
    {
-      fprintf(stderr,"%s is not a valid BMP file\n", filename);
+      fprintf(stderr,"Not a valid BMP file\n");
       exit_with_msg_and_exit_code("",NOT_A_VALID_BITMAP_FILE);
    }
 
@@ -153,24 +136,23 @@ even if sizeof(short)=8 and sizeof(int)=8. See below for that. */
 
    if (Bitmap_Head.biHeight == 0 || Bitmap_Head.biWidth == 0) 
    {
-      fprintf(stderr,"error reading BMP file header of %s - width or height is zero\n",filename);
+      fprintf(stderr,"error reading BMP file header - width or height is zero\n");
       exit_with_msg_and_exit_code("",WIDTH_OR_HEIGHT_ZERO_IN_BITMAP);
    } 
    if (Bitmap_Head.biPlanes != 1) 
    {
-      fprintf(stderr,"error reading BMP file header of %s - bitplanes not equal to 1\n",filename);
+      fprintf(stderr,"error reading BMP file header - bitplanes not equal to 1\n");
       exit_with_msg_and_exit_code("",BITPLANES_NOT_1_IN_BITMAP);
    }
    if (ColormapSize > 256 || Bitmap_Head.biClrUsed > 256)
    {
-      fprintf(stderr,"error reading BMP file header of %s - colourmap size error\n",filename);
+      fprintf(stderr,"error reading BMP file header of - colourmap size error\n");
       exit_with_msg_and_exit_code("",COLOURMAP_GREATER_THAN_256);
    }
    /* Windows and OS/2 declare filler so that rows are a multiple of
       word length (32 bits == 4 bytes)
    */
 
-   fclose(fp);
    *width=Bitmap_Head.biWidth;
    *height=Bitmap_Head.biHeight;
    *offset=Bitmap_File_Head.bfOffs;
@@ -180,72 +162,4 @@ even if sizeof(short)=8 and sizeof(int)=8. See below for that. */
      fprintf(stderr,"Internal error in read_bitmap_file_headers.c\n"); 
      exit(1);
    }
-}
-
-int
-load_image_from_png(char *filename, size_t *size, int *width, int *height, unsigned char **image_data) {
-  FILE		*fp;
-  int		y;
-  uint8_t	header[8];
-  png_structp	png_ptr;
-  png_infop   	info_ptr;
-  png_infop	end_info;
-  png_bytep	*row_pointers;
-  unsigned char *ptr;
-
-  if ((png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL)) == NULL) {
-    fprintf(stderr, "Unable to init PNG library\n");
-    return 1;
-  }
-
-  if ((info_ptr = png_create_info_struct(png_ptr)) == NULL) {
-    fprintf(stderr, "Unable to create PNG info struct\n");
-    png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
-    return 1;
-  }
-
-  if ((end_info = png_create_info_struct(png_ptr)) == NULL) {
-    fprintf(stderr, "Unable to create PNG end info struct\n");
-    png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
-    return 1;
-  }
-
-  if ((fp = fopen(filename, "rb")) == NULL) {
-    fprintf(stderr, "Unable to open '%s'\n", filename);
-    return 1;
-  }
-
-  fread(header, 1, sizeof(header), fp);
-  if (png_sig_cmp(header, 0, sizeof(header))) {
-    fprintf(stderr, "'%s' does not appear to be a PNG file\n", filename);
-    return 1;
-  }
-
-  png_init_io(png_ptr, fp);
-  png_set_sig_bytes(png_ptr, sizeof(header));
-
-  png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_PACKING | PNG_TRANSFORM_STRIP_ALPHA | PNG_TRANSFORM_STRIP_16, NULL);
-
-  *width = png_get_image_width(png_ptr, info_ptr);
-  *height = png_get_image_height(png_ptr, info_ptr);
-  *size = *width * *height * 3;
-  *image_data = ustring(0L, (long)*size);
-  ptr = *image_data;
-
-  if ((row_pointers = png_get_rows(png_ptr, info_ptr)) == NULL) {
-    fprintf(stderr, "Failed to read PNG into memory\n");
-    return 1;
-  }
-
-  for (y = 0; y < *height; y++) {
-    bcopy(row_pointers[y], ptr, *width * 3);
-    ptr += *width * 3;
-  }
-
-  bmp_buff=ustring(0,BITMAP_HEADER_SIZE);
-
-  png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-  fclose(fp);
-
-  return 0;
 }

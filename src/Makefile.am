@@ -6,9 +6,11 @@ readbin create_bmp_for_symmetrical_stripline \
 design_coupler create_bmp_for_stripline_coupler \
 create_bmp_for_microstrip_coupler \
 find_optimal_dimensions_for_microstrip_coupler \
-create_bmp_for_rect_cen_in_rect_coupler 
+create_bmp_for_rect_cen_in_rect_coupler
 
 atlc_SOURCES = atlc.c read_bitmap_file_headers.c \
+load_image_from_file.c \
+write_data_to_image.c \
 update_voltage_array.c \
 check_for_boundaries.c \
 memory.c setup_arrays.c \
@@ -29,9 +31,16 @@ write_fields_for_two_conductor_lines.c \
 write_fields_for_directional_couplers.c \
 exit_codes.h definitions.h
 
-atlc_CPPFLAGS = -DNEED_MPI_CODE @PTHREAD_CFLAGS@
-atlc_LDADD = @PTHREAD_LIBS@ @LIBS@ 
+atlc_CPPFLAGS = -DNEED_MPI_CODE
+atlc_CFLAGS = @PTHREAD_CFLAGS@
+atlc_LDADD = @PTHREAD_LIBS@ @LIBS@
 
+if USE_LIBPNG
+atlc_CPPFLAGS += -DUSE_LIBPNG
+atlc_CFLAGS += $(libpng_CFLAGS)
+atlc_LDADD += $(libpng_LIBS)
+atlc_SOURCES += png.c
+endif
 
 create_bmp_for_rect_in_rect_SOURCES = create_bmp_for_rect_in_rect.c \
 usage_create_bmp_for_rect_in_rect.c write_bitmap.c \
@@ -44,7 +53,7 @@ check_error.c get_options.c definitions.h \
 exit_with_msg_and_exit_code.c print_copyright.c \
 exit_codes.h definitions.h
 
-create_bmp_for_rect_in_rect_LDADD = @LIBS@ 
+create_bmp_for_rect_in_rect_LDADD = @LIBS@
 
 create_any_bitmap_SOURCES = \
 create_any_bitmap.c \
