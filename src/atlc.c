@@ -78,6 +78,7 @@ int non_vacuum_found=FALSE;
 int dielectrics_to_consider_just_now;
 int coupler=FALSE;
 double r=1.90;
+enum image_type_t image_type;
 
 char *inputfile_name;
 

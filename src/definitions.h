@@ -175,7 +175,9 @@ Laboratory's list of physical constants found on the web. */
 enum image_type_t {
     IMG_BMP = 0,
     IMG_PNG
-} image_type;
+};
+
+extern enum image_type_t image_type;
 
 extern char *my_optarg;
 /* I needed to invent add my_ in front of the usual name for optind,
