@@ -88,7 +88,7 @@ load_image_from_png(char *filename, size_t *size, int *width, int *height, unsig
   png_init_io(png_ptr, fp);
   png_set_sig_bytes(png_ptr, sizeof(header));
 
-  png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_PACKING | PNG_TRANSFORM_STRIP_ALPHA | PNG_TRANSFORM_STRIP_16, NULL);
+  png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_PACKING | PNG_TRANSFORM_STRIP_ALPHA | PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_BGR, NULL);
 
   *width = png_get_image_width(png_ptr, info_ptr);
   *height = png_get_image_height(png_ptr, info_ptr);
