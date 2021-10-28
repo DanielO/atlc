@@ -120,15 +120,15 @@ write_data_to_png(FILE *fp, int width, int height, unsigned char *image_data) {
   png_bytep *row_pointers;
   int i;
 
-  if ((row_pointers = png_malloc(png_ptr, height * (sizeof (png_bytep)))) == NULL) {
-    fprintf(stderr, "Unable to allocate PNG row pointers\n");
-    return 1;
-  }
-
   if ((png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
      NULL, NULL, NULL)) == NULL) {
     png_free(png_ptr, row_pointers);
     fprintf(stderr, "Unable to allocate PNG write struct\n");
+    return 1;
+  }
+
+  if ((row_pointers = png_malloc(png_ptr, height * (sizeof (png_bytep)))) == NULL) {
+    fprintf(stderr, "Unable to allocate PNG row pointers\n");
     return 1;
   }
 
